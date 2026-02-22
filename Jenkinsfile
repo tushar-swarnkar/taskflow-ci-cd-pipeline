@@ -20,8 +20,14 @@ pipeline {
         }
 
         stage('Build Maven') {
-            steps {
-                 sh 'mvn clean package -DskipTests'
+          steps {
+            sh """
+                    docker run --rm \
+                    -v "\$PWD":/workspace \
+                    -w /workspace \
+                    maven:3.9-eclipse-temurin-17 \
+                    mvn -q clean package -DskipTests
+                """
             }
         }
 
