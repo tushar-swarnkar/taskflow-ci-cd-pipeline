@@ -18,17 +18,13 @@ pipeline {
                 checkout scm
             }
         }
-    }
 
-    stages {
         stage('Build Maven') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                 sh 'mvn clean package -DskipTests'
             }
         }
-    }
 
-    stages {
         stage('Docker Build') {
             steps {
                 sh """
@@ -36,9 +32,7 @@ pipeline {
                 """
             }
         }
-    }
 
-    stages {
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
@@ -50,29 +44,28 @@ pipeline {
                 }
             }
         }
-    }
 
-    stage('Deploy to EC2') {
-      steps {
-        sshagent(['ec2-ssh']) {
-          sh """
-            ssh -o StrictHostKeyChecking=no ec2-user@${APP_HOST} '
-              docker pull ${IMAGE_REPO}:latest &&
-              docker rm -f ${APP_NAME} || true &&
-              docker run -d --name ${APP_NAME} \
-                -p ${APP_PORT}:${APP_PORT} \
-                -e APP_VERSION=${IMAGE_TAG} \
-                ${IMAGE_REPO}:latest
-            '
-          """
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['ec2-ssh']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ec2-user@${APP_HOST} '
+                            docker pull ${IMAGE_REPO}:latest &&
+                            docker rm -f ${APP_NAME} || true &&
+                            docker run -d --name ${APP_NAME} \
+                            -p ${APP_PORT}:${APP_PORT} \
+                            -e APP_VERSION=${IMAGE_TAG} \
+                            ${IMAGE_REPO}:latest
+                        '
+                    """
+                }
+            }
         }
-      }
-    }
 
-    stage('Health Check') {
-      steps {
-        sh "curl -f http://${APP_HOST}:${APP_PORT}/api/health"
-      }
+        stage('Health Check') {
+            steps {
+                sh "curl -f http://${APP_HOST}:${APP_PORT}/api/health"
+            }
+        }
     }
-
 }
