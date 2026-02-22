@@ -6,7 +6,7 @@ pipeline {
         APP_NAME = "task-flow"
         APP_PORT = "9000"
 
-        IMAGE_REPO = "swarnkartushar/taskflow"
+        IMAGE_REPO = "swarnkartushar/task-flow"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
 
         APP_HOST = "65.2.132.72"
