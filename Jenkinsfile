@@ -40,21 +40,23 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-            steps {
-                sshagent(['ec2-ssh']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ec2-user@${APP_HOST} '
-                            docker pull ${IMAGE_REPO}:latest &&
-                            docker rm -f ${APP_NAME} || true &&
-                            docker run -d --name ${APP_NAME} \
-                            -p ${APP_PORT}:${APP_PORT} \
-                            -e APP_VERSION=${IMAGE_TAG} \
-                            ${IMAGE_REPO}:latest
-                        '
-                    """
-                }
+          steps {
+            withCredentials([file(credentialsId: 'ec2-key-file', variable: 'KEYFILE')]) {
+              sh """
+                chmod 600 "$KEYFILE"
+                ssh -o StrictHostKeyChecking=no -i "$KEYFILE" ec2-user@${APP_HOST} '
+                    docker pull ${IMAGE_REPO}:latest &&
+                    docker rm -f ${APP_NAME} || true &&
+                    docker run -d --name ${APP_NAME} \
+                    -p ${APP_PORT}:${APP_PORT} \
+                    -e APP_VERSION=${IMAGE_TAG} \
+                    ${IMAGE_REPO}:latest
+                '
+              """
             }
         }
+}
+
 
         stage('Health Check') {
             steps {
