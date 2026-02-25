@@ -9,7 +9,7 @@ pipeline {
         IMAGE_REPO = "swarnkartushar/task-flow"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
 
-        APP_HOST = "65.2.132.72"
+        APP_HOST = "65.2.167.33"
     }
 
     stages {
